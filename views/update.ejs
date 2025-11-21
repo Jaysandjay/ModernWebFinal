@@ -1,0 +1,49 @@
+<%- include('partials/header', { title: 'Update Movie' }) %>
+
+<h1>Update Movie Information</h1>
+<div class="form-container">
+    <% if (typeof movieToEdit !== 'undefined') { %>
+        <form action="/update/<%= movieToEdit.id %>" method="post" >
+
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="<%= movieToEdit.name %>">
+        </div>
+
+        <div>
+            <label for="description">Description:</label>
+            <input type="text" id="description" name="description" value="<%= movieToEdit.description %>">
+        </div>
+
+        <div>
+            <label for="year">Year:</label>
+            <input type="text" id="year" name="year" value="<%= movieToEdit.year %>">
+        </div>
+
+        <div>
+            <label for="genre">Genre:</label>
+            <input type="text" id="genre" name="genre" value="<%= movieToEdit.genre %>">
+        </div>
+
+        <div>
+            <label for="rating">Rating:</label>
+            <input type="number" id="rating" name="rating" value="<%= movieToEdit.rating %>">
+        </div>
+
+        <button type="submit" class="submit-btn">Submit</button>
+    </form>
+</div>
+    <% } else { %>
+        <p style="color: red;">No Movie information available to edit</p>
+    <% } %>
+>
+    <% if (typeof error !== 'undefined') { %>
+        <p style="color: red"> <%= error %> </p>
+    <% } %>
+
+    <% if (typeof message !== 'undefined') { %>
+        <p style="color: green"> <%= message %> </p>
+    <% } %>
+</div>
+
+<%- include('partials/footer') %>
