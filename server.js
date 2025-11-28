@@ -6,8 +6,9 @@ const PORT = process.env.PORT || 5000
 const bcrypt = require('bcryptjs')
 const session = require('express-session')
 const {check, validationResult} = require('express-validator')
+require('dotenv').config()
 
-const CONNECTION_STRING = `mongodb+srv://dbUser:dbUser@cluster0.b9heor7.mongodb.net/?appName=Cluster0`
+//const CONNECTION_STRING = `mongodb+srv://dbUser:dbUser@cluster0.b9heor7.mongodb.net/?appName=Cluster0`
 
 let Movie = require('./models/movie')
 let User = require('./models/user');
@@ -399,7 +400,7 @@ app.post("/update/:id", ensureLogin, ensureUserIsOwner, async(req, res) => {
 const connectDB = async() => {
     try{
         console.log(`Attempting to connect to DB`);
-        mongoose.connect(CONNECTION_STRING, {dbName: "Movie"})
+        mongoose.connect(process.env.MONGO_URI, {dbName: "Movie"})
         .then(() => console.log(`Database connection established successfully.`))
         .catch( (err) => 
             console.log(`Can't established database connection : ${JSON.stringify(err)}`))
