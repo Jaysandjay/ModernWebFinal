@@ -3,6 +3,10 @@
 <h1>Movie List</h1>
 <div class="table-container">
 
+    <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
 
     <% if (typeof movielist !== 'undefined' &&
             movielist.length > 0

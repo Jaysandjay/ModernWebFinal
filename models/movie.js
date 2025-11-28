@@ -23,6 +23,15 @@ const movieSchema = new mongoose.Schema({
         type : Number,
         required : false
     },
+    music : {
+        type: String,
+        required: false
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    }
 })
 
 let Movie = mongoose.model("Movie", movieSchema)

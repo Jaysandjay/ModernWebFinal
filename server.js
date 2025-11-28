@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 
 app.use(session({
-    secret: "jupiter_saturn_cpan212_fall24", //any random secret secure string
+    secret: "JABOCLLA", //any random secret secure string
     resave: false,
     saveUninitialized: false,
     cookie: {},
@@ -41,6 +41,37 @@ const ensureLogin = (req, res, next) => {
         next();
     }
 }
+
+//TBD Middleware for edit/delete with known user
+const ensureUserIsOwner = async (req, res, next) => {
+    try {
+        const movieId = req.params.id;
+        const movie = await Movie.findById(movieId);
+
+        if (!movie) {
+            return res.status(404).send("Movie not found");
+        }
+
+        if (!req.session.loggedInUser) {
+            return res.redirect("/login");
+        }
+
+        // Compare movie.user with logged-in user
+        if (movie.user.toString() !== req.session.loggedInUser._id.toString()) {
+            return res.redirect('/movielist?error=You are not allowed to edit or delete this movie.');
+        }
+
+        // Store movie to reuse in route
+        req.movie = movie;
+
+        next();
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send("Server error");
+    }
+};
+
+
 
 
 app.get("/", ensureLogin, (req,res) => {
@@ -212,6 +243,8 @@ app.post("/insert", async(req, res) => {
                 year: req.body.year,
                 genre: req.body.genre,
                 rating: req.body.rating,
+                music: req.body.music,
+                user: req.session.loggedInUser._id 
             })
 
             console.log(`movieToInsert : ${JSON.stringify(movieToInsert)}`);
@@ -245,7 +278,7 @@ app.get('/movielist', ensureLogin, async (req, res) => {
 
         if (movies){
             console.log(`\nDocuments Received from DB : ${JSON.stringify(movies)}`)
-            return res.render("movielist", {movielist : movies})
+            return res.render("movielist", {movielist : movies, error: req.query.error || null, message: req.query.message || null})
         }else{
             return res.send("No documents received from the database")
         }
@@ -256,7 +289,7 @@ app.get('/movielist', ensureLogin, async (req, res) => {
 
 
 //route to delete user document by ID
-app.post("/delete/:id", ensureLogin, async(req, res) => {
+app.post("/delete/:id", ensureLogin, ensureUserIsOwner, async(req, res) => {
     console.log(`movie ID to delete : ${req.params.id}`);
     const idToDelete = req.params.id
 
@@ -273,23 +306,24 @@ app.post("/delete/:id", ensureLogin, async(req, res) => {
                 if (movies){
                     res.render('movielist', {
                         movielist : movies, 
-                        message: `Movie deleted successfully`
+                        message: `Movie deleted successfully`,
+                        error: null
                     })
                 }else{
                     res.redirect("/movielist")
                 }
             }else{
                 console.log(`No such Movie exist`);
-                res.render('movielist', {message: `No such movie exist`})
+                res.render('movielist', {movielist : movies, message: `No such movie exist`, error: null})
             }
 
         }catch(err){
             console.log(`Error while deleting movie : ${JSON.stringify(err)}`);
-            return res.render('movielist', {error : err})
+            return res.render('movielist', {movielist : movies, message: null, error : err})
         }
     }else{
         console.log(`No document with given id exist`);
-        res.render('movielist', {error : `No document with given id exist`})
+        res.render('movielist', {movielist : movies, message: null, error : `No document with given id exist`})
     }
 })
 
@@ -320,7 +354,7 @@ app.get("/update/:id", ensureLogin, async(req, res) => {
 })
 
 
-app.post("/update/:id", ensureLogin, async(req, res) => {
+app.post("/update/:id", ensureLogin, ensureUserIsOwner, async(req, res) => {
     console.log(`movie ID to update : ${req.params.id}`);
     const idToUpdate = req.params.id
 
@@ -333,6 +367,8 @@ app.post("/update/:id", ensureLogin, async(req, res) => {
                 year: req.body.year,
                 genre: req.body.genre,
                 rating: req.body.rating,
+                music: req.body.music,
+                user: req.body.user,
             }
             console.log(`updatedMovieObj : ${JSON.stringify(updatedMovieObj)}`);
 
@@ -343,9 +379,7 @@ app.post("/update/:id", ensureLogin, async(req, res) => {
             )
 
             if(movie){
-                res.render('update', {
-                    movieToEdit: movie, 
-                    message: `movie information updated successfully`})
+                res.redirect('/movielist')
             }else{
                 console.log(`Error: Unable to updated the movie information.`);
                 res.render('update', {error: `Error: Unable to updated the movie information`})
