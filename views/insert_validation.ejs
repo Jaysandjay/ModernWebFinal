@@ -1,0 +1,65 @@
+<%- include('partials/header', { title: 'Add New Student' }) %>
+
+  <h1>Add New Movie</h1>
+  <div class="form-container">
+    <form action="/insert" method="post">
+      <div>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+
+      <div>
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description">
+      </div>
+
+      <div>
+        <label for="year">Year:</label>
+        <input type="number" id="year" name="year" required>
+        <small id="year-help" class="help-text" style="color: #666"></small>
+      </div>
+
+      <div>
+        <label for="genre">Genre:</label>
+        <input type="text" id="genre" name="genre">
+      </div>
+
+      <div>
+        <label for="rating">Rating:</label>
+        <input type="number" id="rating" name="rating">
+      </div>
+
+      <div>
+        <label for="rating">Music:</label>
+        <input type="text" id="music" name="music">
+      </div>
+
+      <button type="submit" class="submit-btn">Add Movie</button>
+    </form>
+  </div>
+
+  <%- include('partials/footer') %>
+
+    <script>
+      (function () {
+        const earliest = 1895;
+        const current = new Date().getFullYear();
+        const yearInput = document.getElementById('year');
+        const help = document.getElementById('year-help');
+        if (!yearInput) return;
+        yearInput.min = earliest;
+        yearInput.max = current;
+        yearInput.placeholder = `${earliest} - ${current}`;
+        help.textContent = `Enter a year between ${earliest} and ${current}.`;
+        yearInput.addEventListener('input', () => {
+          const v = parseInt(yearInput.value, 10);
+          if (!yearInput.value) {
+            help.textContent = `Enter a year between ${earliest} and ${current}.`;
+          } else if (isNaN(v) || v < earliest || v > current) {
+            help.textContent = `Year must be between ${earliest} and ${current}.`;
+          } else {
+            help.textContent = '';
+          }
+        });
+      })();
+    </script>

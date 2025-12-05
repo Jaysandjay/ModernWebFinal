@@ -2,7 +2,7 @@ const express = require("express")
 const app = express()
 const path = require("path")
 const mongoose = require('mongoose')
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 3000
 const bcrypt = require('bcryptjs')
 const session = require('express-session')
 const {check, validationResult} = require('express-validator')
@@ -232,7 +232,24 @@ app.post("/login", async (req, res) => {
     }
 });
 
-app.post("/insert", async(req, res) => {
+app.post("/insert", ensureLogin, async(req, res) => {
+
+    const earliest = 1895;
+    const currentYear = new Date().getFullYear();
+
+    // validate year server-side (and any other fields you want)
+    await check('year', `Year must be an integer between ${earliest} and ${currentYear}`)
+      .notEmpty().isInt({ min: earliest, max: currentYear }).run(req);
+
+    // you can also validate name/description/genre etc. as required
+    await check('name', 'Name is required').notEmpty().run(req);
+    await check('genre', 'Genre is required').notEmpty().run(req);
+
+    const errors = validationResult(req).array();
+    if (errors && errors.length > 0) {
+        // render form with errors (client-side shows year help too)
+        return res.render('insert', { errors: errors });
+    }
 
     if (req.body){
         console.log(`Form data : ${JSON.stringify(req.body)}`)
@@ -241,9 +258,9 @@ app.post("/insert", async(req, res) => {
             const movieToInsert = Movie({
                 name: req.body.name,
                 description: req.body.description,
-                year: req.body.year,
+                year: parseInt(req.body.year, 10),
                 genre: req.body.genre,
-                rating: req.body.rating,
+                rating: req.body.rating ? Number(req.body.rating) : undefined,
                 music: req.body.music,
                 user: req.session.loggedInUser._id 
             })
@@ -356,43 +373,50 @@ app.get("/update/:id", ensureLogin, async(req, res) => {
 
 
 app.post("/update/:id", ensureLogin, ensureUserIsOwner, async(req, res) => {
-    console.log(`movie ID to update : ${req.params.id}`);
-    const idToUpdate = req.params.id
+    const earliest = 1895;
+    const currentYear = new Date().getFullYear();
 
-    if (idToUpdate){
-        console.log(`Trying to save updated data for movie with ID : ${idToUpdate}`);
-        try{
-            const updatedMovieObj = {
-                name: req.body.name,
-                description: req.body.description,
-                year: req.body.year,
-                genre: req.body.genre,
-                rating: req.body.rating,
-                music: req.body.music,
-                user: req.body.user,
-            }
-            console.log(`updatedMovieObj : ${JSON.stringify(updatedMovieObj)}`);
+    await check('year', `Year must be an integer between ${earliest} and ${currentYear}`)
+      .notEmpty().isInt({ min: earliest, max: currentYear }).run(req);
+    await check('name', 'Name is required').notEmpty().run(req);
+    await check('genre', 'Genre is required').notEmpty().run(req);
 
-            const movie = await Movie.findByIdAndUpdate(
-                idToUpdate, 
-                updatedMovieObj, 
-                {new: true}
-            )
+    const errors = validationResult(req).array();
+    if (errors && errors.length > 0) {
+        // re-render update page with movie data and errors
+        const movie = await Movie.findById(req.params.id);
+        return res.render('update', { movieToEdit: movie, error: errors });
+    }
 
-            if(movie){
-                res.redirect('/movielist')
-            }else{
-                console.log(`Error: Unable to updated the movie information.`);
-                res.render('update', {error: `Error: Unable to updated the movie information`})
-            }
-        }catch(err){
-            console.log(`Error while saving updated document. ${JSON.stringify(err)}`);
-            res.render('update', {error: `Error: Error while saving updated document. 
-                ${JSON.stringify(err)}`})
+    // when building updated object, ensure year is a Number
+    try{
+        const updatedMovieObj = {
+            name: req.body.name,
+            description: req.body.description,
+            year: parseInt(req.body.year, 10),
+            genre: req.body.genre,
+            rating: req.body.rating ? Number(req.body.rating) : undefined,
+            music: req.body.music,
+            user: req.movie.user // keep original owner (ensureUserIsOwner set req.movie)
         }
-    }else{
-        console.log(`Error: ID not provided.`);
-        res.render('update', {error: `Error: ID not provided.`})
+        console.log(`updatedMovieObj : ${JSON.stringify(updatedMovieObj)}`);
+
+        const movie = await Movie.findByIdAndUpdate(
+            idToUpdate, 
+            updatedMovieObj, 
+            {new: true}
+        )
+
+        if(movie){
+            res.redirect('/movielist')
+        }else{
+            console.log(`Error: Unable to updated the movie information.`);
+            res.render('update', {error: `Error: Unable to updated the movie information`})
+        }
+    }catch(err){
+        console.log(`Error while saving updated document. ${JSON.stringify(err)}`);
+        res.render('update', {error: `Error: Error while saving updated document. 
+            ${JSON.stringify(err)}`})
     }
 })
 
@@ -416,4 +440,3 @@ const onServerStart = () => {
     connectDB()
 }
 app.listen(PORT, onServerStart)
- 
