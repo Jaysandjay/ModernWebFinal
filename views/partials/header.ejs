@@ -1,25 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> <%= title %> </title>
-    <link rel="stylesheet" href="/styles.css" >
+  <meta charset="UTF-8" />
+  <title><%= title || 'Movie App' %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-    <header>
-        <h1>Movies</h1>
-        <nav>
-            <ul>
-                <% if (user) { %>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/logout">Logout</a></li>
-                    <li><a href="/movielist">List of Movies</a></li>
-                    <li><a href="/insert">Add New Movie</a></li>
-                <% } else { %>
-                    <a href="/login">Login</a>
-                    <a href="/register">Register</a>
-                <% } %>
-            </ul>
-        </nav>
-    </header>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand">
+        🎬 <span>MovieApp</span>
+      </a>
+
+      <nav class="main-nav">
+        <a href="/">Home</a>
+        <a href="/movielist">All Movies</a>
+
+        <% if (user) { %>
+          <a href="/insert">Add Movie</a>
+          <form action="/logout" method="get" style="display:inline;">
+            <button type="submit" class="link-button">Logout</button>
+          </form>
+        <% } else { %>
+          <a href="/register">Register</a>
+          <a href="/login">Login</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">

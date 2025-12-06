@@ -1,28 +1,20 @@
+<%- include('partials/header', { title: 'Home' }) %>
 
-<%- include('partials/header', {title: 'Home Page'}) %>
+<section class="hero">
+  <h1>Welcome to MovieApp</h1>
+  <p class="subtitle">
+    A glowing place to add, edit, and explore your favourite movies.
+  </p>
 
-<% if (user) { %>
-    <h2>Welcome, <%= user.name %> </h2>
-<% } %>
-
-    <div>
-        <h1>Modern Web Technologies - CPAN-212-RNA</h1>
-        <h2>Final Project</h2>
-        <ul>
-            <li>Jasmine Sanders</li>
-            <li>Darryl LeCraw</li>
-            <li>Lana Tiebo</li> 
-            <li>Clarance Leung</li>
-        </ul>
-    </div>
-
-<% if (typeof errors !== 'undefined' && errors.length > 0) { 
-    errors.forEach((err) => {
-%>
-    <p style="color: red;"><%= JSON.stringify(err.msg) %></p>
-<% 
-    }) //forEach
-  } //if
-%>
+  <div class="hero-actions">
+    <% if (user) { %>
+      <a href="/movielist" class="btn btn-primary">Browse your movies</a>
+      <a href="/insert" class="btn btn-ghost">Add a new movie</a>
+    <% } else { %>
+      <a href="/register" class="btn btn-primary">Create an account</a>
+      <a href="/login" class="btn btn-ghost">Login</a>
+    <% } %>
+  </div>
+</section>
 
 <%- include('partials/footer') %>
